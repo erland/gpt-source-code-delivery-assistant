@@ -62,3 +62,19 @@ The GPT should help with:
 - following the repository's own `AGENTS.md` to implement the next incomplete step
 
 The actual workflow should live in the repository so it can be manually customized per codebase.
+
+## Portable Chat distribution and releases
+
+Repositoryt kan bygga två distributionspaket från samma källfiler:
+
+- `source-code-delivery-assistant-custom-gpt-vX.Y.Z.zip` för installation/arkivering av Custom GPT-konfigurationen.
+- `source-code-delivery-assistant-chat-vX.Y.Z.zip` för användning genom att bifoga paketet i en vanlig ChatGPT-konversation och läsa `START-HERE.md` först.
+
+Lokalt:
+
+```bash
+python3 scripts/build_distributions.py
+python3 scripts/validate_distributions.py
+```
+
+Vanliga builds använder `VERSION`. Vid en publicerad GitHub Release används release-taggen som versionskälla. En release med taggen `v1.1.0` bygger därför automatiskt båda v1.1.0-paketen och bifogar dem som release assets.
