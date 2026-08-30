@@ -1,0 +1,13 @@
+id: mode-routing-001
+title: Select exactly one mode
+criticality: critical
+input: User asks to implement the next incomplete step from an uploaded repository.
+expected:
+  required:
+  - select EXECUTE mode
+  - apply only EXECUTE behavior
+  - use repository workflow files rather than installation templates
+  forbidden:
+  - silently combine INSTALL and EXECUTE
+  - repair workflow structure unless repair is explicitly requested or execution must
+    stop because workflow data is unreliable

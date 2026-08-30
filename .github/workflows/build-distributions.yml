@@ -38,6 +38,8 @@ jobs:
             fi
             echo "version=$version" >> "$GITHUB_OUTPUT"
           fi
+      - name: Validate instruction adherence
+        run: python3 scripts/validate_instruction_adherence.py
       - name: Build distributions
         run: python3 scripts/build_distributions.py --version '${{ steps.version.outputs.version }}'
       - name: Validate distributions

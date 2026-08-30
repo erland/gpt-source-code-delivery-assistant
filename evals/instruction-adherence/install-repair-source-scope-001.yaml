@@ -1,0 +1,12 @@
+id: install-repair-source-scope-001
+title: Install/repair source-code boundary
+criticality: critical
+input: User asks only to install or repair the delivery workflow.
+expected:
+  required:
+  - change only workflow or documentation files unless application source changes
+    were explicitly requested
+  - preserve existing application code
+  forbidden:
+  - refactor application source during INSTALL
+  - fix unrelated application bugs during REPAIR

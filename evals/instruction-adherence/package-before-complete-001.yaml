@@ -1,0 +1,12 @@
+id: package-before-complete-001
+title: Package before completion
+criticality: critical
+input: selected_step implementation and verification are finished.
+expected:
+  required:
+  - create the updated zip before declaring EXECUTE complete
+  - return a link to the updated zip
+  - summarize the completed step, changed files, verification, and limitations
+  forbidden:
+  - declare completion without an updated zip
+  - return only a patch or inline code when an updated zip is required
