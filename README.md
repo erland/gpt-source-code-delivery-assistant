@@ -78,3 +78,32 @@ python3 scripts/validate_distributions.py
 ```
 
 Vanliga builds använder `VERSION`. Vid en publicerad GitHub Release används release-taggen som versionskälla. En release med taggen `v1.1.0` bygger därför automatiskt båda v1.1.0-paketen och bifogar dem som release assets.
+
+
+## Runtime hardening
+
+Runtime-distributionerna innehåller endast den aktiva instruktionen, conversation starters och de fem generiska Knowledge-filerna. `examples/` ligger kvar i repositoryt för dokumentation och test men distribueras inte som modellkontext.
+
+Vid runtime gäller precedence: användarens aktuella instruktion → repositoryts `AGENTS.md` → workflow-filer som `AGENTS.md` refererar till → befintlig kod/test/konventioner → generiska Knowledge-mallar som fallback. Generiska mallar ska normalt inte användas i EXECUTE-mode.
+
+
+## Instruction-adherence
+
+`evals/instruction-adherence/` innehåller modellneutrala kontrakt för de beteenden som är viktigast vid mindre modeller:
+
+- repository precedence,
+- mode-routing,
+- exakt ett `selected_step`,
+- plan/progress-konflikter,
+- ZIP root-shape,
+- verifieringsärlighet,
+- package-before-complete,
+- INSTALL/REPAIR-gränsen mot applikationskod.
+
+Validera med:
+
+```bash
+python3 scripts/validate_instruction_adherence.py
+```
+
+Kontrakten är modellneutrala och ska vara användbara både för Luna och starkare modeller.

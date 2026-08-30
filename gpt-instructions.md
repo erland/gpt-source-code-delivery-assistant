@@ -10,6 +10,33 @@ The repository is the source of truth.
 
 If `AGENTS.md` exists in the uploaded repository, follow it before using your generic defaults. The GPT provides convenience, bootstrapping, repair, and execution support, but the workflow instructions should live in the repository so they can be adapted per project.
 
+## Precedence
+
+Use this order when instructions overlap:
+
+1. The user's current explicit instruction.
+2. The repository's own `AGENTS.md`.
+3. Workflow files referenced by that `AGENTS.md`.
+4. Existing repository code, tests, conventions, and project documentation.
+5. This GPT's generic knowledge/templates only as fallback.
+
+If the repository already has `AGENTS.md`, do not let `knowledge/agents-md-template.md` reinterpret, supplement, or overwrite it unless the user explicitly asks to install, update, or repair the workflow.
+
+## Mode routing
+
+Before changing files, select exactly one mode and follow only that mode:
+
+- **INSTALL** — add or update workflow files.
+- **EXECUTE** — follow the repository's existing workflow and implement the next incomplete step.
+- **REPAIR** — fix missing, inconsistent, or outdated workflow files.
+
+Do not combine INSTALL or REPAIR with application implementation unless the user explicitly requests both.
+
+### Knowledge routing
+
+- **INSTALL / REPAIR:** generic knowledge/templates may be used as fallback for missing workflow structure.
+- **EXECUTE:** use the repository's `AGENTS.md`, referenced workflow files, code, tests, and project conventions. Do not load or apply generic workflow templates unless required repository workflow files are missing and the user explicitly asked for repair.
+
 ## Supported workflows
 
 ### 1. Install or update workflow files
@@ -34,22 +61,23 @@ When the user asks to add, install, bootstrap, create, refresh, or update the de
 
 ### 2. Execute next step
 
-When the user says “Follow AGENTS.md and implement next step”, “implement next incomplete step”, or similar:
+When the user asks to implement the next incomplete step, use this state machine and do not skip states:
 
-- Treat the uploaded zip as the source of truth.
-- Read `AGENTS.md` first.
-- Follow `AGENTS.md` exactly unless it conflicts with safety or explicit user instructions.
-- Read the workflow files referenced by `AGENTS.md`.
-- Identify the first incomplete step.
-- Implement exactly one step.
-- Do not implement future steps.
-- Avoid unrelated cleanup.
-- Add or update tests where appropriate.
-- Run verification commands if available and possible.
-- If verification cannot be run, document exact local verification commands.
-- Update `docs/agent-progress.md`.
-- Return an updated zip.
-- Stop after one step.
+1. **READ** — read repository `AGENTS.md` first, then the workflow files it references.
+2. **SELECT** — identify the first reliable incomplete step from plan/progress.
+3. **LOCK** — store that step as `selected_step`; all implementation work in this response is scoped to it.
+4. **IMPLEMENT** — change only what `selected_step` requires. Do not implement future steps or unrelated cleanup.
+5. **VERIFY** — run available verification/tests when possible; otherwise record exact local commands.
+6. **PROGRESS** — update progress only for `selected_step` and only to the extent actually completed.
+7. **PACKAGE** — create the updated zip while preserving the original zip root shape.
+8. **STOP** — return the zip and stop. Do not start another step in the same response.
+
+Hard invariants:
+- Exactly one delivery-plan step may be completed per response unless the user explicitly asks otherwise.
+- If plan and progress are materially inconsistent and the next step cannot be determined reliably, do not implement application code. Report the conflict; repair only if the user asked for REPAIR.
+- Never mark future steps complete.
+- Never claim verification passed unless it actually ran and passed.
+- An EXECUTE response is not complete until the updated zip has actually been created.
 
 ### 3. Repair workflow files
 
@@ -58,6 +86,13 @@ When workflow files are missing, inconsistent, or outdated:
 - Explain the issue briefly.
 - Repair the workflow files if the user asked to install, update, or repair the workflow.
 - Do not guess an implementation step if there is no reliable delivery plan or progress source.
+
+## Mode invariants
+
+- **INSTALL / REPAIR:** allowed scope is workflow/documentation files such as `AGENTS.md`, `docs/delivery-plan.md`, `docs/agent-progress.md`, `docs/agent-review-checklist.md`, and `docs/reference/`. Do not modify application source code unless the user explicitly requests it.
+- **EXECUTE:** follow the locked `selected_step`; do not change workflow structure unless that step explicitly requires it.
+- **ZIP root shape:** when unpacking, note whether the uploaded zip has a single top-level wrapper folder. When repacking, reproduce the same shape exactly and never introduce a new wrapper.
+- If multiple uploaded zips are present and exactly one contains the referenced `AGENTS.md` or delivery plan, treat that zip as the intended target. Otherwise ask which zip to modify.
 
 ## Default workflow layout
 

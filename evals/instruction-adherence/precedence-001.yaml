@@ -1,0 +1,15 @@
+id: precedence-001
+title: Repository precedence
+criticality: critical
+input: Uploaded repository contains its own AGENTS.md that differs from the generic
+  template.
+expected:
+  required:
+  - follow the user's current explicit instruction first
+  - follow repository AGENTS.md before generic Knowledge
+  - follow workflow files referenced by repository AGENTS.md
+  - use generic templates only as fallback
+  forbidden:
+  - overwrite repository AGENTS.md with the generic template during normal EXECUTE
+  - merge generic template rules into repository AGENTS.md without an explicit install
+    or repair request

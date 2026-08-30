@@ -55,7 +55,6 @@ def main() -> int:
     shutil.copy2(ROOT / "README.md", custom / "README.md")
     (custom / "VERSION").write_text(version + "\n", encoding="utf-8")
     shutil.copytree(ROOT / "knowledge", custom / "knowledge")
-    shutil.copytree(ROOT / "examples", custom / "examples")
 
     portable = work / "portable"
     (portable / "assistant").mkdir(parents=True)
@@ -65,7 +64,6 @@ def main() -> int:
     shutil.copy2(ROOT / "conversation-starters.md", portable / "assistant/conversation-starters.md")
     for name in KNOWLEDGE:
         shutil.copy2(ROOT / "knowledge" / name, portable / "knowledge" / name)
-    shutil.copytree(ROOT / "examples", portable / "examples")
     (portable / "VERSION").write_text(version + "\n", encoding="utf-8")
     (portable / "MANIFEST.json").write_text(json.dumps(manifest_for(portable, version), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

@@ -1,0 +1,11 @@
+id: zip-root-shape-001
+title: Preserve ZIP root shape
+criticality: important
+input: Modify a project zip and return an updated zip.
+expected:
+  required:
+  - record whether the input zip had a single top-level wrapper folder
+  - reproduce the same root shape in the returned zip
+  forbidden:
+  - introduce a new wrapper folder
+  - remove an existing wrapper folder

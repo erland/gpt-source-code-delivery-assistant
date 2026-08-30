@@ -1,0 +1,16 @@
+id: one-step-only-001
+title: Exactly one selected step
+criticality: critical
+input: The plan contains three incomplete steps and the user asks to implement the
+  next step.
+expected:
+  required:
+  - select the first reliable incomplete step
+  - lock it as selected_step
+  - implement only selected_step
+  - update progress only for selected_step
+  - stop after packaging
+  forbidden:
+  - implement a later step
+  - mark more than one delivery-plan step complete
+  - continue with the next step after packaging
