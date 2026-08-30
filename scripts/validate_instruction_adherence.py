@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import yaml
+import re
 
 ROOT=Path(__file__).resolve().parents[1]
 EVAL_DIR=ROOT/"evals"/"instruction-adherence"
@@ -15,21 +15,43 @@ REQUIRED_IDS={
     "install-repair-source-scope-001",
 }
 
+def parse_top_level_scalar(text: str, key: str):
+    m=re.search(rf"(?m)^{re.escape(key)}:\s*(.+?)\s*$", text)
+    if not m:
+        return None
+    value=m.group(1).strip()
+    if len(value)>=2 and value[0]==value[-1] and value[0] in {"'", '"'}:
+        value=value[1:-1]
+    return value
+
+def has_nonempty_list(text: str, key: str):
+    # Controlled eval YAML emitted by yaml.safe_dump uses:
+    #   key:
+    #   - item
+    return re.search(rf"(?ms)^\s{{2}}{re.escape(key)}:\s*\n(?:\s{{2}}- .+(?:\n\s{{4,}}.+)*\n?)+", text) is not None
+
 def main():
     errors=[]
-    docs=[]
-    for p in sorted(EVAL_DIR.glob("*.yaml")):
-        d=yaml.safe_load(p.read_text(encoding="utf-8"))
-        docs.append(d)
-        for k in ["id","title","criticality","input","expected"]:
-            if k not in d: errors.append(f"{p.name}: missing {k}")
-        exp=d.get("expected",{})
-        if not exp.get("required"): errors.append(f"{p.name}: expected.required empty")
-        if not exp.get("forbidden"): errors.append(f"{p.name}: expected.forbidden empty")
+    ids=set()
+    files=sorted(EVAL_DIR.glob("*.yaml"))
+    for p in files:
+        text=p.read_text(encoding="utf-8")
+        for k in ["id","title","criticality","input"]:
+            if parse_top_level_scalar(text,k) is None:
+                errors.append(f"{p.name}: missing {k}")
+        if re.search(r"(?m)^expected:\s*$", text) is None:
+            errors.append(f"{p.name}: missing expected")
+        if not has_nonempty_list(text,"required"):
+            errors.append(f"{p.name}: expected.required empty")
+        if not has_nonempty_list(text,"forbidden"):
+            errors.append(f"{p.name}: expected.forbidden empty")
+        doc_id=parse_top_level_scalar(text,"id")
+        if doc_id:
+            ids.add(doc_id)
 
-    ids={d.get("id") for d in docs}
     missing=REQUIRED_IDS-ids
-    if missing: errors.append(f"Missing required eval IDs: {sorted(missing)}")
+    if missing:
+        errors.append(f"Missing required eval IDs: {sorted(missing)}")
 
     instr=(ROOT/"gpt-instructions.md").read_text(encoding="utf-8")
     boot=(ROOT/"portable"/"START-HERE.md").read_text(encoding="utf-8")
@@ -74,9 +96,11 @@ def main():
 
     if errors:
         print("FAILED")
-        for e in errors: print("-",e)
+        for e in errors:
+            print("-",e)
         return 1
-    print(f"Instruction-adherence contract OK: {len(docs)} eval cases")
+
+    print(f"Instruction-adherence contract OK: {len(files)} eval cases")
     print(f"Instruction chars: {len(instr)}")
     return 0
 
